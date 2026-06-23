@@ -1,23 +1,24 @@
 # Paper Mining Project
 
-Open-access scientific paper mining pipeline for schema-based LLM-RAG extraction.
+오픈액세스 논문을 자동으로 검색하고, 공개 PDF만 다운로드한 뒤, 사용자가 정의한 schema에 맞춰 LLM-RAG 기반 구조화 데이터를 추출하는 Python 파이프라인입니다.
 
-The project searches open-access papers from legal sources, downloads public PDFs only, extracts text, builds a local vector database, retrieves relevant chunks, and uses an OpenAI model to extract structured data into CSV, JSONL, and Excel workbooks.
+특히 탄화물 기계적 물성 데이터베이스처럼 **논문 1개를 1행으로 요약하는 방식이 아니라, 조성/샘플/실험조건별 데이터 포인트를 1행으로 정리하는 Excel DB 출력**을 지원합니다.
 
-## What It Does
+## 주요 기능
 
-- Searches papers with OpenAlex.
-- Resolves open-access PDF URLs with Unpaywall and OpenAlex metadata.
-- Downloads only public/open-access PDFs.
-- Extracts page-level text from PDFs with PyMuPDF.
-- Cleans text and creates chunks.
-- Stores chunks in ChromaDB with OpenAI embeddings.
-- Retrieves chunks by schema field description.
-- Extracts structured JSON with an OpenAI model.
-- Exports results as CSV, JSONL, and, for record-level schemas, a grouped-header Excel workbook.
-- Tracks OpenAI token usage in `token_usage.csv` and `token_usage.json`.
+- OpenAlex 기반 논문 검색
+- Unpaywall/OpenAlex 기반 open-access PDF URL 확인
+- 공개 PDF만 다운로드
+- PyMuPDF 기반 PDF 텍스트 추출
+- 텍스트 정리 및 chunk 생성
+- OpenAI embedding + ChromaDB 기반 로컬 vector DB 생성
+- schema field 설명을 query로 사용한 관련 chunk 검색
+- OpenAI 모델을 이용한 JSON 구조화 추출
+- CSV, JSONL, Excel 출력
+- OpenAI token 사용량 기록
+- 다운로드/파싱/API/JSON 오류 및 skip 사유 기록
 
-## Repository Layout
+## 폴더 구조
 
 ```text
 paper_mining_project/
@@ -25,6 +26,7 @@ paper_mining_project/
   requirements.txt
   .env.example
   .gitignore
+  README.md
   configs/
     settings.yaml
     extraction_schema.yaml
@@ -52,7 +54,7 @@ paper_mining_project/
     logger.py
 ```
 
-## Install
+## 설치 방법
 
 ```powershell
 python -m venv .venv
@@ -60,9 +62,9 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## Environment
+## 환경 변수 설정
 
-Copy `.env.example` to `.env` and add your keys.
+`.env.example`을 `.env`로 복사한 뒤 API 키와 이메일을 입력합니다.
 
 ```text
 OPENAI_API_KEY=your_openai_api_key_here
@@ -70,17 +72,29 @@ UNPAYWALL_EMAIL=your_email@example.com
 OPENALEX_MAILTO=your_email@example.com
 ```
 
-`.env` is ignored by git.
+`OPENAI_API_KEY`는 필수입니다.  
+`UNPAYWALL_EMAIL`, `OPENALEX_MAILTO`는 API 사용 예절과 연락 가능성을 위해 넣는 것을 권장합니다.
 
-## Basic Run
+`.env` 파일은 `.gitignore`에 포함되어 GitHub에 올라가지 않습니다.
+
+## 기본 실행
 
 ```powershell
 python main.py --topic "high entropy carbide elastic modulus machine learning" --max_papers 30
 ```
 
-## Carbide Mechanical Properties Run
+주요 옵션:
 
-Use the record-level carbide schema when you want one row per material/sample/condition instead of one row per paper.
+- `--topic`: 검색할 연구 주제
+- `--max_papers`: 최대 검색 논문 수
+- `--schema`: 추출 schema 경로
+- `--settings`: 설정 파일 경로
+- `--require_terms`: 제목/초록에 반드시 포함되어야 하는 단어 목록
+- `--exclude_terms`: 제목/초록에 포함되면 제외할 단어 목록
+
+## 탄화물 기계적 물성 DB 생성 예시
+
+탄화물 기계적 물성처럼 조성/샘플/조건별 row가 필요한 경우에는 `configs/carbide_mechanical_schema.yaml`을 사용합니다.
 
 ```powershell
 python main.py `
@@ -91,9 +105,32 @@ python main.py `
   --exclude_terms "high entropy,high-entropy,alloy,alloys,glass,glasses,machine learning,deep learning,neural network,artificial intelligence,materials informatics"
 ```
 
-## Configuration
+이 schema를 사용하면 한 논문에서 여러 조성이나 샘플이 보고된 경우 각각 별도 행으로 분리됩니다.
 
-Edit `configs/settings.yaml` to change models and runtime parameters.
+예시 출력 구조:
+
+```text
+Meta data
+  Title, Year, DOI
+
+Material
+  Material system, Composition, Phase, Binder or second phase
+
+Processing / Sample
+  Density, Grain size, Synthesis method, Sintering temperature, Sintering time
+
+Mechanical Property
+  Test method, Test temperature, Bulk modulus, Shear modulus,
+  Youngs modulus, Hardness, Fracture toughness, Flexural strength,
+  Compressive strength, Poisson ratio
+
+Notes
+  Notes
+```
+
+## 설정 파일
+
+기본 설정은 `configs/settings.yaml`에서 수정합니다.
 
 ```yaml
 openai_model: "gpt-5-nano"
@@ -106,57 +143,92 @@ temperature: 0
 output_dir: "data/outputs"
 ```
 
-To switch from `gpt-5-nano` to `gpt-5-mini`, change only `openai_model`.
+모델을 바꾸려면 `openai_model` 값만 수정하면 됩니다.
 
-## Schemas
+예:
 
-`configs/extraction_schema.yaml` is a generic paper-level schema.
+```yaml
+openai_model: "gpt-5-mini"
+```
 
-`configs/carbide_mechanical_schema.yaml` is a record-level schema for carbide mechanical property databases. It produces rows with groups such as:
+## Schema 수정 방법
 
-- Meta data
-- Material
-- Processing / Sample
-- Mechanical Property
-- Notes
+`configs/extraction_schema.yaml` 또는 `configs/carbide_mechanical_schema.yaml`의 `fields` 항목을 수정하면 코드 변경 없이 추출 항목을 바꿀 수 있습니다.
 
-Record-level output is designed to be spreadsheet-friendly. For example, a single paper can produce several rows such as `ZrB2`, `ZrB2-SiC`, and `ZrB2-30SiC`, each with matching hardness, modulus, toughness, and processing fields.
+예시:
 
-## Outputs
+```yaml
+fields:
+  - name: hardness
+    group: "Mechanical Property"
+    description: "Hardness value for this exact material/sample/condition"
+    type: "number"
+    unit: "GPa"
+    required: false
+    allow_multiple: false
+```
 
-Generated outputs are written under `data/outputs` by default and are ignored by git.
+field 속성:
 
-- `metadata.csv`: searched paper metadata
-- `extracted_database.jsonl`: raw extraction results
-- `extracted_database.csv`: flattened table
-- `extracted_database.xlsx`: grouped-header Excel database for record-level schemas
-- `skipped_papers.csv`: skipped papers and reasons
-- `run_log.txt`: run log
-- `token_usage.csv`: OpenAI token usage summary
-- `token_usage.json`: OpenAI token usage summary as JSON
+- `name`: 내부 필드명
+- `group`: Excel 출력 시 상위 그룹명
+- `description`: retrieval query 및 LLM 추출 지침에 사용되는 설명
+- `type`: `string`, `number` 등
+- `unit`: 단위
+- `required`: 필수 여부
+- `allow_multiple`: 여러 값 허용 여부
 
-## GitHub Notes
+## 출력 파일
 
-The repository intentionally excludes:
+기본 출력 위치는 `data/outputs`입니다.
+
+- `metadata.csv`: 검색된 논문 metadata
+- `extracted_database.jsonl`: 원본 JSON 추출 결과
+- `extracted_database.csv`: flatten된 표
+- `extracted_database.xlsx`: 2단 그룹 헤더가 있는 Excel DB
+- `skipped_papers.csv`: skip된 논문과 사유
+- `run_log.txt`: 실행 로그
+- `token_usage.csv`: OpenAI token 사용량 요약
+- `token_usage.json`: OpenAI token 사용량 JSON
+
+## GitHub 업로드 시 제외되는 파일
+
+다음 파일과 폴더는 `.gitignore`에 의해 GitHub에 올라가지 않습니다.
 
 - `.env`
 - `.venv`
-- downloaded PDFs
-- extracted text
-- chunks
-- ChromaDB vector database files
-- generated CSV/XLSX/JSONL/log outputs
+- 다운로드된 PDF
+- 추출된 텍스트
+- chunk JSONL
+- ChromaDB vector DB
+- 실행 결과 CSV/XLSX/JSONL/log
+- Python cache
 
-The `data/*/.gitkeep` files preserve the expected folder structure without committing generated artifacts.
+`data/*/.gitkeep` 파일은 빈 폴더 구조를 유지하기 위해 포함됩니다.
 
-## Legal And Access Notes
+## 저작권 및 접근 권한 주의
 
-This project uses public APIs and public open-access PDF URLs only. It does not use Sci-Hub or other unofficial download paths. Paid or access-restricted PDFs are skipped.
+이 프로젝트는 공개 API와 공개 PDF URL만 사용합니다.
 
-## Limitations
+사용하는 경로:
 
-- Some publisher PDF links may return 403 responses.
-- Some papers have open-access landing pages but no direct PDF URL.
-- LLM JSON can occasionally be malformed; adding a JSON repair or strict structured output layer is recommended for higher recall.
-- Table-heavy papers may benefit from a stronger model such as `gpt-5-mini`.
+- OpenAlex
+- Unpaywall
+- 논문 출판사 또는 저장소가 제공하는 공개 PDF URL
+
+사용하지 않는 경로:
+
+- Sci-Hub
+- 비공식 PDF 다운로드 경로
+- 접근 권한이 없는 유료 논문 PDF
+
+PDF URL이 없거나 접근이 막힌 논문은 `skipped_papers.csv`에 사유를 기록하고 건너뜁니다.
+
+## 한계 및 개선 방향
+
+- 일부 출판사 PDF URL은 403 오류를 반환할 수 있습니다.
+- open-access landing page는 있어도 직접 PDF URL이 없을 수 있습니다.
+- LLM이 JSON을 잘못 생성하는 경우가 있어 JSON repair 또는 strict structured output을 추가하면 회수율을 높일 수 있습니다.
+- 표가 많은 논문은 `gpt-5-nano`보다 `gpt-5-mini`가 더 안정적일 수 있습니다.
+- 현재 PDF 표 구조 추출은 텍스트 기반이므로, 향후 `pdfplumber` 기반 table extraction을 추가하면 정확도가 개선될 수 있습니다.
 
