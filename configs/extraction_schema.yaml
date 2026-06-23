@@ -1,0 +1,130 @@
+schema_name: "ceramic_materials_property_extraction"
+description: "Default extraction schema for ceramic/materials science papers."
+fields:
+  - name: paper_title
+    description: "Full title of the paper"
+    type: "string"
+    unit: null
+    required: true
+    allow_multiple: false
+  - name: doi
+    description: "Digital Object Identifier of the paper"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: false
+  - name: material_system
+    description: "Material family or system studied in the paper"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: true
+  - name: material_composition
+    description: "Chemical formula or composition of the studied material"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: true
+  - name: crystal_structure
+    description: "Reported crystal structure or phase"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: true
+  - name: synthesis_method
+    description: "Experimental synthesis or processing method"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: true
+  - name: sintering_temperature
+    description: "Sintering temperature used during processing"
+    type: "number"
+    unit: "degC"
+    required: false
+    allow_multiple: true
+  - name: sintering_time
+    description: "Sintering or holding time used during processing"
+    type: "number"
+    unit: "h"
+    required: false
+    allow_multiple: true
+  - name: calculation_method
+    description: "Computational or simulation method used"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: true
+  - name: dft_functional
+    description: "DFT exchange-correlation functional or approximation"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: true
+  - name: bulk_modulus
+    description: "Bulk modulus value reported or predicted in the paper"
+    type: "number"
+    unit: "GPa"
+    required: false
+    allow_multiple: true
+  - name: shear_modulus
+    description: "Shear modulus value reported or predicted in the paper"
+    type: "number"
+    unit: "GPa"
+    required: false
+    allow_multiple: true
+  - name: youngs_modulus
+    description: "Young's modulus value reported or predicted in the paper"
+    type: "number"
+    unit: "GPa"
+    required: false
+    allow_multiple: true
+  - name: hardness
+    description: "Hardness value reported or predicted in the paper"
+    type: "number"
+    unit: "GPa"
+    required: false
+    allow_multiple: true
+  - name: thermal_expansion_coefficient
+    description: "Thermal expansion coefficient of the material"
+    type: "number"
+    unit: "1/K"
+    required: false
+    allow_multiple: true
+  - name: machine_learning_model
+    description: "Machine learning model, algorithm, or architecture used"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: true
+  - name: dataset_size
+    description: "Size of dataset used for training, testing, or analysis"
+    type: "number"
+    unit: null
+    required: false
+    allow_multiple: true
+  - name: train_test_split
+    description: "Reported train/test/validation split"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: false
+  - name: performance_metric
+    description: "Reported model performance metric and value"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: true
+  - name: key_result
+    description: "Main result or conclusion relevant to the user's topic"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: true
+  - name: limitation
+    description: "Limitation, caveat, or future work mentioned by the authors"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: true
+

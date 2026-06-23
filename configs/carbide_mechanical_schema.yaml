@@ -1,0 +1,150 @@
+schema_name: "carbide_mechanical_property_database"
+description: "Record-level schema for carbide mechanical property data. One output record should represent one material/sample/condition data point, not one paper."
+output_mode: "data_points"
+record_identity:
+  - composition
+  - phase
+  - synthesis_method
+  - test_method
+fields:
+  - name: material_system
+    group: "Material"
+    description: "Carbide material family such as tungsten carbide, silicon carbide, boron carbide, titanium carbide, zirconium carbide, hafnium carbide, tantalum carbide, cemented carbide, or cermet"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: false
+  - name: composition
+    group: "Material"
+    description: "Exact chemical composition, sample name, grade, or formulation. Examples: WC-10Co, W2C, TiC, B4C, SiC, ZrC, HfC, TaC"
+    type: "string"
+    unit: null
+    required: true
+    allow_multiple: false
+  - name: phase
+    group: "Material"
+    description: "Phase, crystal structure, or crystal system reported for this specific composition"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: false
+  - name: binder_or_second_phase
+    group: "Material"
+    description: "Binder, additive, coating, or second phase associated with the sample"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: false
+  - name: density
+    group: "Processing / Sample"
+    description: "Density or relative density of this sample"
+    type: "number"
+    unit: "g/cm3 or %"
+    required: false
+    allow_multiple: false
+  - name: grain_size
+    group: "Processing / Sample"
+    description: "Mean grain size, particle size, or crystallite size of this sample"
+    type: "number"
+    unit: "um"
+    required: false
+    allow_multiple: false
+  - name: synthesis_method
+    group: "Processing / Sample"
+    description: "Synthesis, consolidation, or processing method used for this sample"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: false
+  - name: sintering_temperature
+    group: "Processing / Sample"
+    description: "Sintering, hot pressing, SPS, annealing, or processing temperature"
+    type: "number"
+    unit: "degC"
+    required: false
+    allow_multiple: false
+  - name: sintering_time
+    group: "Processing / Sample"
+    description: "Sintering or holding time"
+    type: "number"
+    unit: "h"
+    required: false
+    allow_multiple: false
+  - name: test_method
+    group: "Mechanical Property"
+    description: "Mechanical test or measurement method such as nanoindentation, Vickers indentation, ultrasonic, bending, compression, tensile, or resonance"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: false
+  - name: test_temperature
+    group: "Mechanical Property"
+    description: "Temperature at which mechanical property was measured"
+    type: "number"
+    unit: "degC"
+    required: false
+    allow_multiple: false
+  - name: bulk_modulus
+    group: "Mechanical Property"
+    description: "Bulk modulus for this exact material/sample/condition"
+    type: "number"
+    unit: "GPa"
+    required: false
+    allow_multiple: false
+  - name: shear_modulus
+    group: "Mechanical Property"
+    description: "Shear modulus for this exact material/sample/condition"
+    type: "number"
+    unit: "GPa"
+    required: false
+    allow_multiple: false
+  - name: youngs_modulus
+    group: "Mechanical Property"
+    description: "Young's modulus or elastic modulus for this exact material/sample/condition"
+    type: "number"
+    unit: "GPa"
+    required: false
+    allow_multiple: false
+  - name: hardness
+    group: "Mechanical Property"
+    description: "Hardness value for this exact material/sample/condition"
+    type: "number"
+    unit: "GPa"
+    required: false
+    allow_multiple: false
+  - name: fracture_toughness
+    group: "Mechanical Property"
+    description: "Fracture toughness for this exact material/sample/condition"
+    type: "number"
+    unit: "MPa m^0.5"
+    required: false
+    allow_multiple: false
+  - name: flexural_strength
+    group: "Mechanical Property"
+    description: "Flexural strength, bending strength, or transverse rupture strength"
+    type: "number"
+    unit: "MPa"
+    required: false
+    allow_multiple: false
+  - name: compressive_strength
+    group: "Mechanical Property"
+    description: "Compressive strength"
+    type: "number"
+    unit: "MPa"
+    required: false
+    allow_multiple: false
+  - name: poisson_ratio
+    group: "Mechanical Property"
+    description: "Poisson's ratio"
+    type: "number"
+    unit: null
+    required: false
+    allow_multiple: false
+  - name: notes
+    group: "Evidence"
+    description: "Short note describing how the row should be interpreted, including whether values are calculated, measured, approximate, or taken from a table"
+    type: "string"
+    unit: null
+    required: false
+    allow_multiple: false
+

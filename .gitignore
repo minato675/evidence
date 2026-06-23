@@ -1,0 +1,41 @@
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Runtime data and generated artifacts
+data/papers/*
+data/texts/*
+data/chunks/*
+data/vector_db/*
+data/outputs/*
+data/outputs_*/
+!data/**/.gitkeep
+
+# Logs and local scratch
+*.log
+run_log.txt
+tmp/
+temp/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
