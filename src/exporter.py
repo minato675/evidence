@@ -16,6 +16,7 @@ def export_results(
     metadata: pd.DataFrame,
     skipped: list[dict[str, Any]],
     output_dir: str | Path,
+    schema: dict[str, Any] | None = None,
 ) -> None:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -29,7 +30,7 @@ def export_results(
             handle.write(json.dumps(result, ensure_ascii=False) + "\n")
 
     if any("records" in result for result in results):
-        rows, groups = _flatten_data_point_results(results)
+        rows, groups = _flatten_data_point_results(results, schema)
         frame = pd.DataFrame(rows)
         _safe_to_csv(frame, output_path / "extracted_database.csv")
         _safe_to_xlsx(frame, groups, output_path / "extracted_database.xlsx")
@@ -50,6 +51,7 @@ def _flatten_result(result: dict[str, Any]) -> dict[str, Any]:
             row[f"{name}_unit"] = entry.get("unit")
             row[f"{name}_evidence_text"] = entry.get("evidence_text")
             row[f"{name}_source_chunk_id"] = entry.get("source_chunk_id")
+            row[f"{name}_validation_status"] = entry.get("validation_status")
     return row
 
 
@@ -100,34 +102,44 @@ def _safe_to_xlsx(frame: pd.DataFrame, groups: dict[str, str], path: Path) -> Pa
     return target
 
 
-def _flatten_data_point_results(results: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, str]]:
+def _flatten_data_point_results(
+    results: list[dict[str, Any]],
+    schema: dict[str, Any] | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, str]]:
     rows: list[dict[str, Any]] = []
     groups = {
         "Index": "Index",
         "Title": "Meta data",
         "Year": "Meta data",
         "DOI": "Meta data",
-        "Material system": "Material",
-        "Composition": "Material",
-        "Phase": "Material",
-        "Binder or second phase": "Material",
-        "Density": "Processing / Sample",
-        "Grain size": "Processing / Sample",
-        "Synthesis method": "Processing / Sample",
-        "Sintering temperature": "Processing / Sample",
-        "Sintering time": "Processing / Sample",
-        "Test method": "Mechanical Property",
-        "Test temperature": "Mechanical Property",
-        "Bulk modulus": "Mechanical Property",
-        "Shear modulus": "Mechanical Property",
-        "Youngs modulus": "Mechanical Property",
-        "Hardness": "Mechanical Property",
-        "Fracture toughness": "Mechanical Property",
-        "Flexural strength": "Mechanical Property",
-        "Compressive strength": "Mechanical Property",
-        "Poisson ratio": "Mechanical Property",
-        "Notes": "Notes",
     }
+    schema_fields = list((schema or {}).get("fields") or [])
+    if not schema_fields:
+        field_names: list[str] = []
+        for result in results:
+            for record in result.get("records", []):
+                for name in (record.get("fields") or {}):
+                    if name not in field_names:
+                        field_names.append(name)
+        schema_fields = [{"name": name, "group": "Extracted data"} for name in field_names]
+
+    field_columns: list[tuple[str, str]] = []
+    for field in schema_fields:
+        name = str(field.get("name") or "")
+        if not name:
+            continue
+        label = str(field.get("label") or _field_label(name))
+        field_columns.append((name, label))
+        groups[label] = str(field.get("group") or "Extracted data")
+
+    evidence_columns = {
+        "Evidence text": "Evidence",
+        "Source chunk": "Evidence",
+        "Source pages": "Evidence",
+        "Confidence": "Evidence",
+        "Validation status": "Evidence",
+    }
+    groups.update(evidence_columns)
     index = 1
     for result in results:
         for record in result.get("records", []):
@@ -137,30 +149,24 @@ def _flatten_data_point_results(results: list[dict[str, Any]]) -> tuple[list[dic
                 "Title": result.get("title"),
                 "Year": result.get("year"),
                 "DOI": result.get("doi"),
-                "Material system": fields.get("material_system"),
-                "Composition": fields.get("composition"),
-                "Phase": fields.get("phase"),
-                "Binder or second phase": fields.get("binder_or_second_phase"),
-                "Density": fields.get("density"),
-                "Grain size": fields.get("grain_size"),
-                "Synthesis method": fields.get("synthesis_method"),
-                "Sintering temperature": fields.get("sintering_temperature"),
-                "Sintering time": fields.get("sintering_time"),
-                "Test method": fields.get("test_method"),
-                "Test temperature": fields.get("test_temperature"),
-                "Bulk modulus": fields.get("bulk_modulus"),
-                "Shear modulus": fields.get("shear_modulus"),
-                "Youngs modulus": fields.get("youngs_modulus"),
-                "Hardness": fields.get("hardness"),
-                "Fracture toughness": fields.get("fracture_toughness"),
-                "Flexural strength": fields.get("flexural_strength"),
-                "Compressive strength": fields.get("compressive_strength"),
-                "Poisson ratio": fields.get("poisson_ratio"),
-                "Notes": fields.get("notes"),
             }
+            row.update({label: fields.get(name) for name, label in field_columns})
+            row.update(
+                {
+                    "Evidence text": record.get("evidence_text"),
+                    "Source chunk": record.get("source_chunk_id"),
+                    "Source pages": record.get("source_page_range"),
+                    "Confidence": record.get("confidence"),
+                    "Validation status": record.get("validation_status"),
+                }
+            )
             rows.append(row)
             index += 1
     return rows, groups
+
+
+def _field_label(name: str) -> str:
+    return name.replace("_", " ").strip().capitalize()
 
 
 def _merge_group_headers(ws, columns: list[str], groups: dict[str, str]) -> None:
@@ -183,6 +189,8 @@ def _group_color(group: str) -> str:
         "Processing / Sample": "A64D79",
         "Mechanical Property": "ED7D31",
         "Notes": "7F7F7F",
+        "Evidence": "2F75B5",
+        "Extracted data": "5B9BD5",
     }.get(group, "595959")
 
 

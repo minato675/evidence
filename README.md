@@ -17,6 +17,9 @@
 - CSV, JSONL, Excel 출력
 - OpenAI token 사용량 기록
 - 다운로드/파싱/API/JSON 오류 및 skip 사유 기록
+- 모든 chunk에 원본 PDF 페이지 범위 유지
+- LLM이 인용한 chunk와 evidence text의 원문 일치 여부 검증
+- CSV/Excel에 source chunk, page, confidence, validation status 보존
 
 ## 폴더 구조
 
@@ -231,4 +234,12 @@ PDF URL이 없거나 접근이 막힌 논문은 `skipped_papers.csv`에 사유�
 - LLM이 JSON을 잘못 생성하는 경우가 있어 JSON repair 또는 strict structured output을 추가하면 회수율을 높일 수 있습니다.
 - 표가 많은 논문은 `gpt-5-nano`보다 `gpt-5-mini`가 더 안정적일 수 있습니다.
 - 현재 PDF 표 구조 추출은 텍스트 기반이므로, 향후 `pdfplumber` 기반 table extraction을 추가하면 정확도가 개선될 수 있습니다.
+
+## 테스트
+
+핵심 chunk 페이지 추적, 근거 검증, schema 기반 데이터 내보내기는 표준 라이브러리 테스트로 확인할 수 있습니다.
+
+```powershell
+python -m unittest discover -s tests -v
+```
 

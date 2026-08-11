@@ -102,7 +102,7 @@ def main() -> None:
     )
     if metadata.empty:
         logger.warning("No search results found")
-        export_results(results, metadata, [{"stage": "search", "reason": "No search results"}], settings["output_dir"])
+        export_results(results, metadata, [{"stage": "search", "reason": "No search results"}], settings["output_dir"], schema)
         export_token_usage(settings["output_dir"], logger)
         return
 
@@ -114,7 +114,7 @@ def main() -> None:
     logger.info("Open-access PDFs resolved: %s/%s", len(oa_metadata), len(metadata))
 
     if oa_metadata.empty:
-        export_results(results, export_metadata, skipped, settings["output_dir"])
+        export_results(results, export_metadata, skipped, settings["output_dir"], schema)
         export_token_usage(settings["output_dir"], logger)
         return
 
@@ -159,7 +159,13 @@ def main() -> None:
             extracted.setdefault("title", row.get("title"))
             extracted.setdefault("doi", row.get("doi"))
             extracted.setdefault("year", row.get("year"))
-            validated, warnings = validate_extraction(extracted, schema)
+            retrieved_chunks = {
+                hit["chunk_id"]: hit
+                for hits in contexts.values()
+                for hit in hits
+                if hit.get("chunk_id")
+            }
+            validated, warnings = validate_extraction(extracted, schema, retrieved_chunks.values())
             if warnings:
                 logger.warning("Validation warnings for %s: %s", paper_id, "; ".join(warnings))
             results.append(validated)
@@ -175,7 +181,7 @@ def main() -> None:
                 }
             )
 
-        export_results(results, export_metadata, skipped, settings["output_dir"])
+        export_results(results, export_metadata, skipped, settings["output_dir"], schema)
 
     logger.info("Pipeline completed extracted=%s skipped=%s", len(results), len(skipped))
     export_token_usage(settings["output_dir"], logger)
