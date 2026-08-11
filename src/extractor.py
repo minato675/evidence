@@ -135,7 +135,8 @@ class LLMExtractor:
                 "If a table reports several compositions or sample names, create separate records for each row/sample. "
                 "Only extract values explicitly supported by evidence. Use null when unknown. "
                 "Each record must include fields, evidence_text, source_chunk_id, source_page_range, and confidence. "
-                "The evidence_text should be short but enough to audit the row."
+                "The evidence_text must be a short verbatim substring of the cited chunk. "
+                "The source_chunk_id must be copied from the provided chunks; never invent an identifier."
             )
             payload["required_output_shape"] = {
                 "paper_id": paper.get("paper_id"),
@@ -155,7 +156,8 @@ class LLMExtractor:
             payload["task"] = (
                 "Extract values matching the schema from the provided paper chunks. "
                 "Every extracted field must include value, unit, evidence_text, and source_chunk_id. "
-                "If a value is not explicitly supported by the chunks, use null or 'Not specified'."
+                "Evidence text must be a verbatim substring of its cited chunk, and source_chunk_id must be copied "
+                "from the provided chunks. If a value is not explicitly supported, use null or 'Not specified'."
             )
             payload["required_output_shape"] = {
                 "paper_id": paper.get("paper_id"),

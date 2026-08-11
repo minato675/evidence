@@ -24,8 +24,11 @@ def download_pdf(
 
     paper_id = str(row.get("paper_id") or row.get("doi") or "unknown")
     target = paper_path / f"{safe_filename(paper_id)}.pdf"
-    if target.exists() and target.stat().st_size > 0:
+    partial = target.with_suffix(".pdf.part")
+    if _is_valid_pdf(target):
         return target, None
+    target.unlink(missing_ok=True)
+    partial.unlink(missing_ok=True)
 
     pdf_url = str(row.get("pdf_url") or "")
     if not pdf_url:
@@ -38,17 +41,29 @@ def download_pdf(
             content_type = response.headers.get("Content-Type", "").lower()
             if "pdf" not in content_type and not pdf_url.lower().split("?")[0].endswith(".pdf"):
                 return None, _skip(row, "pdf_download", f"URL did not return a PDF content type: {content_type}")
-            with target.open("wb") as handle:
+            with partial.open("wb") as handle:
                 for chunk in response.iter_content(chunk_size=1024 * 64):
                     if chunk:
                         handle.write(chunk)
-    except requests.RequestException as exc:
+    except (requests.RequestException, OSError) as exc:
+        partial.unlink(missing_ok=True)
         return None, _skip(row, "pdf_download", f"PDF download failed: {exc}")
 
-    if target.stat().st_size < 1024:
-        target.unlink(missing_ok=True)
-        return None, _skip(row, "pdf_download", "Downloaded file is too small to be a valid PDF")
+    if not _is_valid_pdf(partial):
+        partial.unlink(missing_ok=True)
+        return None, _skip(row, "pdf_download", "Downloaded file does not have a valid PDF signature or size")
+    partial.replace(target)
     return target, None
+
+
+def _is_valid_pdf(path: Path) -> bool:
+    if not path.exists() or path.stat().st_size < 1024:
+        return False
+    try:
+        with path.open("rb") as handle:
+            return handle.read(5) == b"%PDF-"
+    except OSError:
+        return False
 
 
 def _skip(row: dict[str, Any], stage: str, reason: str) -> dict[str, Any]:
