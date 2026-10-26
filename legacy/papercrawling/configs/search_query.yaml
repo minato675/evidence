@@ -1,0 +1,5 @@
+default:
+  sort: "relevance_score:desc"
+  openalex_filter: "type:article"
+  per_page: 50
+
