@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-26",
+  "target": "evidence",
+  "sources": [
+    {
+      "source": "papercrawling",
+      "target": "evidence",
+      "default_branch": "master",
+      "source_head": "44b30ada15e990ed85ccd347f8c17b48f7af7033",
+      "original_files": 30,
+      "original_refs": [
+        {
+          "ref": "refs/heads/agent/evidence-validation",
+          "oid": "2d908adc0dbf481911cd77a2ac0bf40df07feae1",
+          "type": "commit"
+        },
+        {
+          "ref": "refs/heads/master",
+          "oid": "44b30ada15e990ed85ccd347f8c17b48f7af7033",
+          "type": "commit"
+        },
+        {
+          "ref": "refs/pull/1/head",
+          "oid": "2d908adc0dbf481911cd77a2ac0bf40df07feae1",
+          "type": "commit"
+        }
+      ],
+      "commit_count": 4,
+      "lfs_oids": [],
+      "mode": "subtree",
+      "prefix": "legacy/papercrawling",
+      "archive_prefix": null,
+      "mapping_exceptions": {}
+    }
+  ]
+}

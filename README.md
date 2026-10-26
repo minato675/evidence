@@ -63,3 +63,12 @@ npm run dev
 
 GitHub 공개 전 점검 항목은 [docs/REPOSITORY_CHECKLIST.md](docs/REPOSITORY_CHECKLIST.md)를 참고하세요.
 
+
+## 논문 추출 코드 통합
+
+저는 기존 `papercrawling`의 코드와 이력을 이 저장소로 모았습니다.
+현재 실행 경로는 `backend/`이며, 웹 UI는 `web/`에 있습니다.
+이전 독립형 추출 파이프라인은 [legacy/papercrawling](legacy/papercrawling/README.md)에 보존했습니다.
+변경된 검색·PDF 처리·설정 코드를 자동으로 덮어쓰지 않고 이전 버전으로 구분해 두었습니다.
+
+[원본 이력과 통합 기록](docs/REPOSITORY_MERGE.md)
